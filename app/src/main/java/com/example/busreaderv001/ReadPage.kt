@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import java.io.File
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,13 +21,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReadPage(filePath: String?, onBack: () -> Unit) {
     val context = LocalContext.current
-
+    val customFontFamily = FontFamily(
+        Font(R.font.satoshiregular, FontWeight.Normal)
+    )
     // Decode the filePath from navigation arguments
     val decodedFilePath = filePath?.let { Uri.decode(it) }
     Log.d("ReadPage", "Decoded FilePath from navigation: $decodedFilePath")
@@ -44,7 +51,7 @@ fun ReadPage(filePath: String?, onBack: () -> Unit) {
 
     Log.d("ReadPage", "Using active file path: $activeFilePath")
 
-    // Load the content of the file
+    //
     val fileContent = remember(activeFilePath) {
         activeFilePath?.let {
             val file = File(it)
@@ -58,7 +65,10 @@ fun ReadPage(filePath: String?, onBack: () -> Unit) {
                 }
             } else {
                 if (!file.exists()) Log.e("ReadPage", "File does not exist at path: $it")
-                if (!file.canRead()) Log.e("ReadPage", "File exists but cannot be read at path: $it")
+                if (!file.canRead()) Log.e(
+                    "ReadPage",
+                    "File exists but cannot be read at path: $it"
+                )
                 listOf("File does not exist or cannot be read.")
             }
         } ?: listOf("No file selected. Please choose a file from the Library.")
@@ -68,26 +78,26 @@ fun ReadPage(filePath: String?, onBack: () -> Unit) {
     val scrollState = rememberLazyListState()
     val maxTextSize = 36.sp
     val minTextSize = 12.sp
-    var autoScrollSpeed by remember { mutableStateOf(100L) }
+    var autoScrollSpeed by remember { mutableLongStateOf(100L) }
     var isAutoScrolling by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(isAutoScrolling) {
-        while (isAutoScrolling) {
-            coroutineScope.launch {
-                scrollState.animateScrollToItem(
-                    index = scrollState.firstVisibleItemIndex + 1,
-                    scrollOffset = 0
-                )
+
+    LaunchedEffect(isAutoScrolling, autoScrollSpeed) {
+        if (isAutoScrolling) {
+            while (true) {
+                scrollState.scrollBy(3f)
+                delay(autoScrollSpeed)
             }
-            delay(autoScrollSpeed)
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Read Page", style = MaterialTheme.typography.headlineMedium) },
+                title = {
+                    val fileName = activeFilePath?.let { File(it).nameWithoutExtension } ?: ""
+                    Text(fileName, style = MaterialTheme.typography.headlineMedium)
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -103,10 +113,10 @@ fun ReadPage(filePath: String?, onBack: () -> Unit) {
                     IconButton(onClick = { isAutoScrolling = !isAutoScrolling }) {
                         Text(if (isAutoScrolling) "Stop" else "Auto", fontSize = 18.sp)
                     }
-                    IconButton(onClick = { autoScrollSpeed = (autoScrollSpeed - 50).coerceAtLeast(50L) }) {
+                    IconButton(onClick = { autoScrollSpeed = (autoScrollSpeed - 10).coerceAtLeast(10L) }) {
                         Text("Faster", fontSize = 18.sp)
                     }
-                    IconButton(onClick = { autoScrollSpeed += 50L }) {
+                    IconButton(onClick = { autoScrollSpeed += 10L }) {
                         Text("Slower", fontSize = 18.sp)
                     }
                 }
@@ -116,29 +126,39 @@ fun ReadPage(filePath: String?, onBack: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.DarkGray)
-                .padding(innerPadding)
         ) {
-            LazyColumn(
-                state = scrollState,
+            // Main content with padding
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .background(Color.DarkGray)
+                    .padding(innerPadding)
             ) {
-                items(fileContent) { line ->
-                    Text(
-                        text = line,
-                        color = Color.White,
-                        fontSize = textSize,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
+                LazyColumn(
+                    state = scrollState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    items(fileContent) { line ->
+                        Text(
+                            text = line,
+                            color = Color.White,
+                            fontSize = textSize,
+                            fontFamily = customFontFamily,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
                 }
             }
+
+
             val progress = (scrollState.firstVisibleItemIndex.toFloat() / fileContent.size) * 100
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
+                    .height(60.dp)
                     .align(Alignment.BottomStart)
                     .background(Color.DarkGray)
             ) {
@@ -153,8 +173,7 @@ fun ReadPage(filePath: String?, onBack: () -> Unit) {
         }
     }
 }
-
-// Retrieve the active text file path from SharedPreferences
+//  from SharedPreferences
 private const val PREFS_NAME = "AppPreferences"
 private const val ACTIVE_TEXT_FILE_KEY = "activeTextFilePath"
 

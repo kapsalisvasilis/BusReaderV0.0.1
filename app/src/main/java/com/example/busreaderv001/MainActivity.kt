@@ -2,11 +2,9 @@ package com.example.busreaderv001
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -20,13 +18,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.busreaderv001.ui.theme.BusReaderV001Theme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Check for storage permissions when the app starts
+        //storage permissions check
         checkStoragePermission()
 
         setContent {
@@ -35,7 +32,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!android.os.Environment.isExternalStorageManager()) {
                 Log.d("Permissions", "Storage permissions not granted.")
 
@@ -46,9 +42,6 @@ class MainActivity : ComponentActivity() {
             } else {
                 Log.d("PERMISSIONS", "Permissions granted.")
             }
-        } else {
-            Log.d("PERMISSIONS", "Permissions not required for this Android version.")
-        }
     }
 }
 

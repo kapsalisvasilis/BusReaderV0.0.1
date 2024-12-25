@@ -1,9 +1,9 @@
 package com.example.busreaderv001
 
 import androidx.navigation.NavController
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
@@ -24,11 +24,11 @@ import androidx.compose.ui.unit.sp
 import java.io.File
 import java.io.FileOutputStream
 import android.util.Log
-import com.example.busreaderv001.cleanTextFile
 
-// Top-level constants
+
+// Top-lvl  constants
 private const val BOOK_LIST_FILE = "book_list.txt"
-private const val SELECTED_BOOK_FILE = "selected_book.txt"  // Your constant for selected book
+private const val SELECTED_BOOK_FILE = "selected_book.txt"  //selected book t-lvl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,24 +41,22 @@ fun LibraryPage(navController: NavController, onBack: () -> Unit) {
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
+
             val fileName = getFileNameFromUri(context, uri)
             val path = saveFileFromUri(context, uri, fileName)
+
             val outputFileName = fileName.replace(".epub", ".txt")
             val outputPath = "${context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)}/$outputFileName"
 
-            // Extract text from EPUB
+
             EpubToPdf.extractTextFromEpub(path, outputPath)
-
-            // Clean the extracted text
             val cleanedText = cleanTextFile(outputPath)
-
-            // Save the cleaned text to the output file
             File(outputPath).writeText(cleanedText.joinToString("\n"))
-
-            // Add the cleaned book to the library
             Toast.makeText(context, "Text cleaned and saved to: $outputPath", Toast.LENGTH_SHORT).show()
             bookList = bookList + fileName.replace(".epub", "")
             saveBookList(context, bookList)
+
+
         } else {
             Toast.makeText(context, "No file selected", Toast.LENGTH_SHORT).show()
         }
@@ -70,11 +68,11 @@ fun LibraryPage(navController: NavController, onBack: () -> Unit) {
                 title = { Text("Library", style = MaterialTheme.typography.headlineMedium) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    // Universal Read Button
+                    // uni read
                     Button(
                         onClick = {
                             val activeFilePath = getActiveTextFilePath(context)
@@ -145,12 +143,13 @@ fun LibraryPage(navController: NavController, onBack: () -> Unit) {
 
                                     val activeFilePath = getActiveTextFilePath(context)
                                     if (activeFilePath != null && activeFilePath.endsWith("$bookName.txt")) {
-                                        saveActiveTextFilePath(context, null) // Clear active text file path
+                                        saveActiveTextFilePath(context, null)
                                     }
 
                                     if (selectedBook == bookName) {
-                                        selectedBook = null // Reset selected book if it is deleted
-                                        saveSelectedBook(context, null) // Remove selection from persistence
+
+                                        selectedBook = null
+                                        saveSelectedBook(context, null)
                                     }
 
                                     Toast.makeText(context, "$bookName deleted", Toast.LENGTH_SHORT).show()
@@ -160,7 +159,7 @@ fun LibraryPage(navController: NavController, onBack: () -> Unit) {
                                 Text("Delete")
                             }
                         }
-                        // Add the divider inside the items block
+
                         HorizontalDivider(
                             thickness = 1.dp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
@@ -189,7 +188,7 @@ private fun saveSelectedBook(context: Context, bookName: String?) {
     if (bookName != null) {
         file.writeText(bookName)
     } else {
-        file.delete() // If no book is selected, remove the file
+        file.delete() //if no book is selected, remove the file
     }
 }
 private const val PREFS_NAME = "AppPreferences"
@@ -231,7 +230,7 @@ private fun getFileNameFromUri(context: Context, uri: Uri): String {
     } ?: "unknown.epub"
 }
 
-// Delete a book's text file and remove it from the list
+
 private fun deleteBook(context: Context, bookName: String) {
     val filePath = "${context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)}/$bookName.txt"
     val file = File(filePath)
@@ -247,7 +246,7 @@ private fun deleteBook(context: Context, bookName: String) {
     }
 }
 
-// Persist and load the book list
+
 private fun saveBookList(context: Context, bookList: List<String>) {
     val file = File(context.filesDir, BOOK_LIST_FILE)
     file.writeText(bookList.joinToString("\n"))

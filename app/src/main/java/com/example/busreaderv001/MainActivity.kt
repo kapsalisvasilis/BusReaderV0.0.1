@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.busreaderv001.ui.theme.BusReaderV001Theme
 
 class MainActivity : ComponentActivity() {
@@ -56,9 +57,20 @@ fun MyApp() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "start") {
         composable("start") { StartPage(navController) }
-        composable("library") { LibraryPage() }
-        composable("read") { ReadPage() }
-        composable("settings") { SettingsPage() }
+        composable("library") {
+            LibraryPage(
+                navController = navController,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable("read?filePath={filePath}",
+            arguments = listOf(navArgument("filePath") { nullable = true })
+                ) { backStackEntry -> val filePath = backStackEntry.arguments?.getString("filePath")
+            ReadPage(filePath = filePath, onBack = { navController.popBackStack() })
+            Log.d("MainActivity", "Received filePath in ReadPage: $filePath")
+        }
+        composable("settings") {
+            SettingsPage(onBack = { navController.popBackStack() }) }
     }
 }
 
@@ -76,7 +88,11 @@ fun StartPage(navController: NavController) {
             Text("Library")
         }
         Button(
-            onClick = { navController.navigate("read") },
+            onClick = {
+                val exampleFilePath = "/path/to/default/file.txt" // Replace with a valid path
+                navController.navigate("read?filePath=${Uri.encode(exampleFilePath)}")
+
+            },
             modifier = Modifier.padding(8.dp)
         ) {
             Text("Read")

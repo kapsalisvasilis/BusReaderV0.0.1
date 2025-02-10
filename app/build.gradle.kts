@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation ("androidx.core:core-splashscreen:1.0.1")
     implementation ("androidx.compose.material3:material3:1.3.1")
     implementation (libs.androidx.compose.ui.ui)
     implementation("nl.siegmann.epublib:epublib-core:3.1") {

@@ -6,6 +6,6 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/play_store_512" />
+            android:src="@drawable/ic_launcher_monochrome" />
     </item>
 </layer-list>
